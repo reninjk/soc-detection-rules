@@ -1,0 +1,39 @@
+title: Brute Force Login Attempt
+id: a9b1c2d3-e4f5-6789-abcd-ef0123456789
+status: production
+description: Detects multiple failed login attempts from a single source within a short time window, indicating a brute force attack.
+references:
+  - https://attack.mitre.org/techniques/T1110/
+author: SOC Team
+date: 2026-05-01
+modified: 2026-05-01
+tags:
+  - attack.credential_access
+  - attack.t1110
+  - attack.t1110.001
+logsource:
+  category: authentication
+  product: generic
+detection:
+  selection:
+    EventID:
+      - 4625   # Windows Failed Logon
+      - 4771   # Kerberos Pre-Authentication Failed
+  timeframe: 5m
+  condition: selection | count() by SourceIpAddress > 10
+falsepositives:
+  - Vulnerability scanners
+  - Misconfigured applications with hardcoded credentials
+  - Users repeatedly mistyping passwords
+  - Automated testing systems
+level: medium
+fields:
+  - SourceIpAddress
+  - TargetUserName
+  - WorkstationName
+  - LogonType
+playbook: ../../soc-incident-response/playbooks/account-compromise.md
+tuning_notes: |
+  Adjust threshold (default: 10 failures in 5 min) based on environment.
+  Whitelist known scanner IPs and internal service accounts.
+  Consider separate rule for admin account brute force with lower threshold (3 failures).
