@@ -1,0 +1,92 @@
+name: New Detection Rule
+description: Propose a new Sigma detection rule
+title: "[RULE] "
+labels: ["new-rule", "detection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new detection rule. Please complete all fields below.
+
+  - type: input
+    id: rule-title
+    attributes:
+      label: Rule Title
+      placeholder: "e.g., Suspicious PowerShell Encoded Command Execution"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mitre-tactic
+    attributes:
+      label: MITRE ATT&CK Tactic
+      options:
+        - Initial Access
+        - Execution
+        - Persistence
+        - Privilege Escalation
+        - Defense Evasion
+        - Credential Access
+        - Discovery
+        - Lateral Movement
+        - Collection
+        - Command and Control
+        - Exfiltration
+        - Impact
+    validations:
+      required: true
+
+  - type: input
+    id: mitre-technique
+    attributes:
+      label: MITRE ATT&CK Technique ID
+      placeholder: "e.g., T1059.001"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Proposed Severity
+      options:
+        - critical
+        - high
+        - medium
+        - low
+        - informational
+    validations:
+      required: true
+
+  - type: textarea
+    id: threat-description
+    attributes:
+      label: Threat Description
+      description: What threat or attacker behaviour does this rule detect?
+      placeholder: Describe the attack technique, why it matters, and how attackers use it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: detection-logic
+    attributes:
+      label: Proposed Detection Logic
+      description: Paste your Sigma rule YAML or describe the detection logic
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: false-positive-notes
+    attributes:
+      label: Known False Positive Sources
+      placeholder: "e.g., IT automation scripts, software deployment tools"
+    validations:
+      required: true
+
+  - type: textarea
+    id: test-evidence
+    attributes:
+      label: Testing Evidence
+      description: How was this rule tested? What log sources were used?
+    validations:
+      required: false
