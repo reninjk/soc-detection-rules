@@ -1,0 +1,69 @@
+title: Pass-the-Hash Attack Detected
+id: 8c4e2f1d-9b7a-4c3e-a6d5-2f8b1e9c4a7f
+status: production
+description: Detects potential Pass-the-Hash (PtH) attacks using NTLM authentication
+  where a user authenticates with a hash from an unusual source, typically indicating
+  lateral movement. Looks for NTLM logon type 3 with blank password and logon processes
+  associated with pass-the-hash tooling.
+references:
+  - https://attack.mitre.org/techniques/T1550/002/
+  - https://www.microsoft.com/en-us/security/blog/2021/01/20/deep-dive-into-the-solorigate-second-stage-activation/
+author: SOC Team
+date: 2026-01-01
+tags:
+  - attack.lateral_movement
+  - attack.t1550.002
+  - attack.credential_access
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_logon:
+    EventID: 4624
+    LogonType: 3
+    AuthenticationPackageName: NTLM
+  filter_legit_sources:
+    # Filter known legitimate NTLM type 3 logon sources
+    TargetUserName|endswith: '$'          # Machine account logons
+    WorkstationName: ''                    # No workstation (expected for some services)
+  filter_anonymous:
+    TargetUserName: 'ANONYMOUS LOGON'
+  selection_tools:
+    # Common PtH tool artifacts
+    ProcessName|contains:
+      - 'mimikatz'
+      - 'sekurlsa'
+      - 'wce.exe'
+      - 'fgdump'
+  selection_suspicious_logon:
+    EventID: 4624
+    LogonType: 3
+    AuthenticationPackageName: NTLM
+    # NTLM type 3 from non-domain machine to domain resource is suspicious
+    LogonProcessName: 'NtLmSsp'
+    KeyLength: 0
+  condition: >
+    (selection_logon and not filter_legit_sources and not filter_anonymous)
+    or selection_tools
+    or selection_suspicious_logon
+falsepositives:
+  - Legitimate NTLM authentication in environments without Kerberos
+  - Workgroup environments
+  - Some legacy applications using NTLM
+  - Tune by whitelisting known source/destination pairs
+level: high
+fields:
+  - EventID
+  - TargetUserName
+  - TargetDomainName
+  - IpAddress
+  - WorkstationName
+  - LogonType
+  - AuthenticationPackageName
+response:
+  - Identify source IP and determine if legitimate workstation
+  - Check for credential dumping tools on source host
+  - Audit all logon events from the source IP in the last 24h
+  - Isolate source host if confirmed malicious
+  - Reset credentials for targeted accounts
+playbook: https://github.com/reninjk/soc-incident-response/blob/main/playbooks/account-compromise.md
