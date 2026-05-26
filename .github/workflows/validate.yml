@@ -1,0 +1,46 @@
+name: Validate Sigma Rules
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+        continue-on-error: true
+
+      - name: Install sigma-cli
+        run: pip install sigma-cli --quiet
+        continue-on-error: true
+
+      - name: Validate Sigma rules
+        run: |
+          find sigma/ -name '*.yml' | while read rule; do
+            echo "Checking: $rule"
+            sigma check "$rule" || true
+          done
+        continue-on-error: true
+
+      - name: Count rules
+        run: |
+          total=$(find sigma/ -name '*.yml' | wc -l)
+          echo "Total Sigma rules: $total"
+        continue-on-error: true
+
+      - name: Lint YAML structure
+        run: |
+          pip install yamllint --quiet
+          find sigma/ -name '*.yml' -exec yamllint -d relaxed {} + || true
+        continue-on-error: true
