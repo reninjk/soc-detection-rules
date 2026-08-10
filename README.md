@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Last Commit](https://img.shields.io/github/last-commit/reninjk/soc-detection-rules)](https://github.com/reninjk/soc-detection-rules/commits/main) [![Issues](https://img.shields.io/github/issues/reninjk/soc-detection-rules)](https://github.com/reninjk/soc-detection-rules/issues)
+
 # 🔍 SOC Detection Rules
 
 > SIEM detection rules, Sigma rules, threat hunting queries, and MITRE ATT&CK mappings for the Security Operations Center.
