@@ -1,0 +1,46 @@
+title: RDP Login from Unusual Source — Potential Lateral Movement
+id: c9d2f4e7-8b1a-4c3d-a6e0-3f1b2c4d5e6a
+status: test
+description: >
+  Detects successful RDP (Remote Desktop Protocol) logons from source hosts that
+  do not normally RDP into the target. Used to identify lateral movement via
+  T1021.001 where an attacker pivots from a compromised host to high-value targets.
+  Requires a baseline period to establish the expected logon matrix.
+references:
+  - https://attack.mitre.org/techniques/T1021/001/
+  - https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-265a
+author: reninjk
+date: 2026/10/25
+modified: 2026/10/25
+tags:
+  - attack.lateral_movement
+  - attack.t1021.001
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4624
+    LogonType: 10             # RemoteInteractive (RDP)
+    AuthenticationPackageName: 'Negotiate'
+  filter_expected_admins:
+    SubjectUserName|endswith: '$'       # machine accounts (Kerberos computer auth)
+  filter_known_jump_hosts:
+    IpAddress|cidr:
+      - '10.0.0.0/8'          # PLACEHOLDER — replace with your jump-server subnet
+  condition: selection and not filter_expected_admins and not filter_known_jump_hosts
+falsepositives:
+  - Legitimate IT admin access from approved source IPs (add to filter_known_jump_hosts)
+  - Helpdesk RDP sessions from authorised subnets
+  - Break-glass admin account usage (investigate but expected)
+level: medium
+response:
+  - Verify whether the source host is an expected RDP origin
+  - Check whether the logged-on user account has MFA enforced for RDP
+  - Review recent activity on the source host for signs of compromise
+  - If the source host is unusual: escalate, isolate source host, reset credentials
+notes: >
+  This rule produces a manageable alert volume only after allow-listing known
+  jump-server ranges and IT admin workstations. Tune filter_known_jump_hosts
+  with your actual bastion/jump subnet before enabling in production.
+  Combine with the LSASS memory dump rule for high-confidence lateral-movement kill-chain.
