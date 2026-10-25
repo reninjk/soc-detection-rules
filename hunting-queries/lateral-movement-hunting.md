@@ -1,4 +1,4 @@
-# Threat Hunting Queries — Lateral Movement & C2
+# Threat Hunting Queries: Lateral Movement & C2
 
 > **OPSEC Note:** All IP addresses, hostnames and hashes shown below are
 > placeholder examples only. Replace with your environment's actual baselines
@@ -8,7 +8,7 @@
 
 ## 1. SMB Lateral Movement (T1021.002)
 
-### KQL — Microsoft Sentinel / Defender for Endpoint
+### KQL: Microsoft Sentinel / Defender for Endpoint
 
 ```kql
 // Detect unusual SMB connections across internal hosts
@@ -39,7 +39,7 @@ ransomware pre-staging.
 
 ---
 
-### SPL — Splunk Enterprise Security
+### SPL: Splunk Enterprise Security
 
 ```spl
 index=wineventlog EventCode=4648
@@ -55,16 +55,16 @@ index=wineventlog EventCode=4648
 | sort - unique_targets
 ```
 
-**Data source:** Windows Security Event Log (EventID 4648 — explicit credential logon)
+**Data source:** Windows Security Event Log (EventID 4648: explicit credential logon)
 
 ---
 
 ## 2. C2 Beaconing via DNS (T1071.004)
 
-### KQL — Microsoft Sentinel
+### KQL: Microsoft Sentinel
 
 ```kql
-// Detect high-frequency, low-variance DNS queries — typical C2 beaconing pattern
+// Detect high-frequency, low-variance DNS queries: typical C2 beaconing pattern
 DnsEvents
 | where TimeGenerated > ago(1h)
 | where QueryType == "A"
@@ -92,7 +92,7 @@ domain is a strong C2 indicator.
 
 ---
 
-### SPL — Splunk Enterprise Security
+### SPL: Splunk Enterprise Security
 
 ```spl
 index=dns
@@ -116,7 +116,7 @@ index=dns
 
 ## 3. Pass-the-Hash / Credential Reuse (T1550.002)
 
-### KQL — Microsoft Sentinel
+### KQL: Microsoft Sentinel
 
 ```kql
 // Detect NTLM logons from hosts where the user has no interactive session
