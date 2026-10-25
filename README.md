@@ -9,7 +9,7 @@
 
 ---
 
-## 📊 Current Coverage — October 2026
+## 📊 Current Coverage: October 2026
 
 | Tactic | Rules | Key Techniques |
 |--------|-------|----------------|
@@ -83,11 +83,11 @@ sigma check sigma/**/*.yml
 
 Each rule in this library meets the following criteria:
 
-- ✅ **MITRE ATT&CK tagged** — every rule maps to at least one technique
-- ✅ **False positive documented** — known FP sources listed and filtered where possible
-- ✅ **Response guidance included** — `response:` block with analyst action steps
-- ✅ **Tuning notes included** — environment-specific thresholds clearly marked
-- ✅ **OPSEC safe** — no real IOCs, credentials, or infrastructure data
+- ✅ **MITRE ATT&CK tagged**: every rule maps to at least one technique
+- ✅ **False positive documented**: known FP sources listed and filtered where possible
+- ✅ **Response guidance included**: `response:` block with analyst action steps
+- ✅ **Tuning notes included**: environment-specific thresholds clearly marked
+- ✅ **OPSEC safe**: no real IOCs, credentials, or infrastructure data
 
 ---
 
