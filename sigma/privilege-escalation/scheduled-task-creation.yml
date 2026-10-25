@@ -1,0 +1,56 @@
+title: Suspicious Scheduled Task Created by Unusual Process
+id: d4e7a2b0-5c1f-4d8e-b3a6-7f2c0d4e5b1a
+status: test
+description: >
+  Detects creation of a new scheduled task by a process that is not a legitimate
+  task-management tool. Attackers commonly abuse Windows Task Scheduler for
+  persistence (T1053.005) and privilege escalation when tasks run as SYSTEM.
+  Covers both schtasks.exe CLI usage and COM/API-based task registration.
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+  - https://docs.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page
+author: reninjk
+date: 2026/10/25
+modified: 2026/10/25
+tags:
+  - attack.persistence
+  - attack.t1053.005
+  - attack.privilege_escalation
+  - attack.t1053
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_schtasks:
+    Image|endswith: '\\schtasks.exe'
+    CommandLine|contains:
+      - '/create'
+      - '-create'
+  selection_event:
+    EventID: 4698            # Windows Security: Scheduled task created
+  filter_system_tasks:
+    SubjectUserName|endswith: '$'
+  filter_known_schedulers:
+    ParentImage|endswith:
+      - '\\services.exe'
+      - '\\msiexec.exe'
+      - '\\taskeng.exe'
+      - '\\WmiPrvSE.exe'   # WMI-based legitimate scheduling
+  filter_known_paths:
+    Image|startswith:
+      - 'C:\\Windows\\System32\\'
+      - 'C:\\Windows\\SysWOW64\\'
+    CommandLine|contains:
+      - '\\Microsoft\\Windows\\'   # built-in Windows tasks
+  condition: (selection_schtasks or selection_event) and not filter_system_tasks
+    and not filter_known_schedulers and not filter_known_paths
+falsepositives:
+  - Software deployment tools (SCCM, Ansible, Chocolatey) — add to filter_known_schedulers
+  - IT automation scripts run by admin accounts
+  - Legitimate application installers that register maintenance tasks
+level: medium
+response:
+  - Review the task XML definition: run path, trigger, principal (who it runs as)
+  - If running as SYSTEM from a non-admin user context: escalate immediately
+  - Check parent process and command-line for signs of script-based dropper
+  - Correlate with recent phishing/execution events on the same host
