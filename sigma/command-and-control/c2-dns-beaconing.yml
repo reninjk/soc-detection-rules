@@ -1,0 +1,58 @@
+title: Suspicious High-Frequency DNS Queries — Potential C2 Beaconing
+id: b3c8f1e0-7a2d-4e9b-c5f4-1d0e2b3a7c8f
+status: test
+description: >
+  Detects a single host making an unusually high number of DNS queries to the same
+  external domain within a short time window. This pattern is characteristic of
+  C2 beaconing over DNS (T1071.004), where implants poll a domain at fixed intervals.
+  Known CDN, update, and telemetry domains should be excluded during tuning.
+references:
+  - https://attack.mitre.org/techniques/T1071/004/
+  - https://unit42.paloaltonetworks.com/dns-tunneling-in-the-wild-overview-of-oilrig/
+author: reninjk
+date: 2026/10/25
+modified: 2026/10/25
+tags:
+  - attack.command_and_control
+  - attack.t1071.004
+  - attack.exfiltration
+  - attack.t1048.003
+logsource:
+  category: dns
+  product: windows
+detection:
+  selection:
+    EventID: 22             # Sysmon DNS query event
+  filter_known_good:
+    QueryName|endswith:
+      - '.microsoft.com'
+      - '.windows.com'
+      - '.office.com'
+      - '.azure.com'
+      - '.akamaiedge.net'
+      - '.cloudfront.net'
+      - '.amazonaws.com'
+      - '.google.com'
+      - '.googleapis.com'
+  condition: selection and not filter_known_good
+  timeframe: 5m
+  group-by:
+    - Computer
+    - QueryName
+  having:
+    count(): '>= 20'         # >= 4 queries/minute to same domain
+falsepositives:
+  - Legitimate software with aggressive telemetry (tune per environment)
+  - Video streaming or CDN content delivery (add to filter_known_good)
+  - Corporate update services (add to filter_known_good)
+level: medium
+response:
+  - Capture full PCAP on the alerting host for the beaconing period
+  - Check query answer (resolved IP) against threat-intel feeds
+  - Inspect the process generating the DNS queries (use EDR)
+  - If confirmed C2: isolate host, reset credentials, initiate IR
+notes: >
+  Sigma count aggregation syntax varies by backend. For Splunk:
+  use `stats count by src_ip, query | where count >= 20` over a 5-min bucket.
+  For KQL: use `summarize count() by DeviceName, QueryName, bin(TimeGenerated,5m)`.
+  Threshold of 20 queries/5 min (≥4/min) is a starting point — baseline your environment.
